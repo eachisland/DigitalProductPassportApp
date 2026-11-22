@@ -1,0 +1,12 @@
+@{
+    ViewData["Title"] = "Начало";
+}
+
+<div class="text-center py-5">
+    <h1 class="display-5 fw-bold">Дигитален продуктов паспорт</h1>
+    <p class="lead text-muted">Сканирай QR кода на дрехата и виж от какво е направена, къде е произведена и как да се грижиш за нея.</p>
+    <div class="d-flex gap-2 justify-content-center flex-wrap mt-4">
+        <a class="btn btn-success btn-lg" asp-controller="Scan" asp-action="Index">📷 Сканирай QR код</a>
+        <a class="btn btn-outline-secondary btn-lg" asp-controller="Dashboard" asp-action="Index">Дашборд за марки</a>
+    </div>
+</div>

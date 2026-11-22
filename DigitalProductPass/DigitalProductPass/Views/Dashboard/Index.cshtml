@@ -1,0 +1,82 @@
+@using DigitalProductPass.ViewModels
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Дашборд";
+}
+
+<h1 class="h3 mb-3">Дашборд</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="stat-tile"><div class="stat-value">@Model.Products</div><div class="stat-label">Продукти</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-tile"><div class="stat-value">@Model.Items</div><div class="stat-label">Артикули с QR</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-tile"><div class="stat-value">@Model.TotalScans</div><div class="stat-label">Общо сканирания</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-tile"><div class="stat-value">@Model.ScansToday</div><div class="stat-label">Днес</div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h5">Сканирания през последните 7 дни</h2>
+                <canvas id="scansChart" height="110"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Най-сканирани продукти</h2>
+                @if (!Model.TopProducts.Any())
+                {
+                    <p class="text-muted mb-0">Още няма сканирания.</p>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var t in Model.TopProducts)
+                        {
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span>@t.Name</span><strong>@t.Scans</strong>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h2 class="h5">Последни сканирания</h2>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Време (UTC)</th><th>Продукт</th><th>Код</th></tr></thead>
+                <tbody>
+                @foreach (var r in Model.RecentScans)
+                {
+                    <tr><td>@r.ScannedAt.ToString("dd.MM.yyyy HH:mm")</td><td>@r.ProductName</td><td>@r.SerialCode</td></tr>
+                }
+                @if (!Model.RecentScans.Any())
+                {
+                    <tr><td colspan="3" class="text-muted">Още няма сканирания.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script>
+        new Chart(document.getElementById('scansChart'), {
+            type: 'bar',
+            data: {
+                labels: @Json.Serialize(Model.DayLabels),
+                datasets: [{ label: 'Сканирания', data: @Json.Serialize(Model.DayCounts), backgroundColor: '#198754' }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        });
+    </script>
+}

@@ -1,0 +1,116 @@
+@model Product
+@{
+    ViewData["Title"] = Model.Name;
+    var total = Model.Materials.Sum(m => m.Percentage);
+}
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <div class="text-muted small">@Model.Brand.Name · @Model.Sku</div>
+        <h1 class="h3 mb-0">@Model.Name</h1>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">← Всички продукти</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Материали <span class="text-muted small">(общо @total.ToString("0.##")%)</span></h2>
+                <ul class="list-group list-group-flush mb-3">
+                    @foreach (var m in Model.Materials)
+                    {
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>@m.Name @(m.IsRecycled ? "♻" : "") <span class="text-muted small">@m.Origin</span></span>
+                            <strong>@m.Percentage.ToString("0.##")%</strong>
+                        </li>
+                    }
+                    @if (!Model.Materials.Any()) { <li class="list-group-item text-muted px-0">Няма добавени.</li> }
+                </ul>
+                <form method="post" asp-action="AddMaterial" asp-route-id="@Model.Id" class="row g-2">
+                    <div class="col-12 col-sm-5"><input name="name" class="form-control" placeholder="Материал" required /></div>
+                    <div class="col-6 col-sm-3"><input name="percentage" class="form-control" type="number" step="0.01" min="0.01" max="100" placeholder="%" required /></div>
+                    <div class="col-6 col-sm-4"><input name="origin" class="form-control" placeholder="Произход" /></div>
+                    <div class="col-12 d-flex align-items-center justify-content-between">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="isRecycled" value="true" id="isRecycled" />
+                            <label class="form-check-label" for="isRecycled">Рециклиран</label>
+                        </div>
+                        <button class="btn btn-sm btn-success" type="submit">Добави</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Верига на доставки</h2>
+                <ol class="timeline mb-3">
+                    @foreach (var s in Model.SupplyChainSteps.OrderBy(s => s.Order))
+                    {
+                        <li>
+                            <span class="fw-semibold">@s.Stage.Label()</span> — @s.FacilityName, @s.Country
+                            @if (s.Date is DateOnly d) { <span class="text-muted small">(@d.ToString("dd.MM.yyyy"))</span> }
+                        </li>
+                    }
+                    @if (!Model.SupplyChainSteps.Any()) { <li class="text-muted">Няма добавени етапи.</li> }
+                </ol>
+                <form method="post" asp-action="AddStep" asp-route-id="@Model.Id" class="row g-2">
+                    <div class="col-12 col-sm-4">
+                        <select name="stage" class="form-select">
+                            @foreach (var st in Enum.GetValues<SupplyChainStage>())
+                            {
+                                <option value="@((int)st)">@st.Label()</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-8"><input name="facilityName" class="form-control" placeholder="Обект / фабрика" required /></div>
+                    <div class="col-6"><input name="country" class="form-control" placeholder="Държава" required /></div>
+                    <div class="col-6"><input name="date" type="date" class="form-control" /></div>
+                    <div class="col-12 text-end"><button class="btn btn-sm btn-success" type="submit">Добави етап</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h2 class="h5">Артикули и QR кодове <span class="text-muted small">(@Model.Items.Count)</span></h2>
+
+        <form method="post" asp-action="GenerateItems" asp-route-id="@Model.Id" class="row g-2 mb-3">
+            <div class="col-6 col-md-2"><input name="count" type="number" min="1" max="500" value="1" class="form-control" aria-label="Брой" /></div>
+            <div class="col-6 col-md-2"><input name="size" class="form-control" placeholder="Размер" /></div>
+            <div class="col-6 col-md-3"><input name="color" class="form-control" placeholder="Цвят" /></div>
+            <div class="col-6 col-md-3"><button class="btn btn-success" type="submit">Генерирай QR кодове</button></div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead><tr><th>QR</th><th>Код</th><th>Размер</th><th>Цвят</th><th>Връзка</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var i in Model.Items.OrderByDescending(i => i.Id))
+                {
+                    <tr>
+                        <td><img src="/qr/@(i.PublicId).png" width="72" height="72" loading="lazy" alt="QR @i.SerialCode" /></td>
+                        <td><code>@i.SerialCode</code></td>
+                        <td>@i.Size</td>
+                        <td>@i.Color</td>
+                        <td class="small"><a href="/p/@i.PublicId" target="_blank" rel="noopener">отвори паспорта</a></td>
+                        <td class="text-end small">
+                            <a href="/qr/@(i.PublicId).svg" download="@(i.SerialCode).svg">SVG</a> ·
+                            <a href="/qr/@(i.PublicId).png" download="@(i.SerialCode).png">PNG</a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="6" class="text-muted">Още няма артикули. Генерирай първите QR кодове по-горе.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

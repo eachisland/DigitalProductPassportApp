@@ -1,0 +1,48 @@
+@model ProductFormModel
+@{
+    ViewData["Title"] = "Нов продукт";
+}
+
+<h1 class="h3 mb-3">Нов продукт</h1>
+
+<form method="post" asp-action="Create" class="form-narrow">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="BrandId" class="form-label"></label>
+        <div class="input-group">
+            <select asp-for="BrandId" asp-items="(SelectList)ViewBag.Brands" class="form-select">
+                <option value="0">— избери —</option>
+            </select>
+            <a class="btn btn-outline-secondary" asp-controller="Brands" asp-action="Create">+ Нова марка</a>
+        </div>
+        <span asp-validation-for="BrandId" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Sku" class="form-label"></label>
+            <input asp-for="Sku" class="form-control" />
+            <span asp-validation-for="Sku" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-3"><label asp-for="Category" class="form-label"></label><input asp-for="Category" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="Description" class="form-label"></label><textarea asp-for="Description" class="form-control" rows="3"></textarea></div>
+    <div class="mb-3"><label asp-for="ImageUrl" class="form-label"></label><input asp-for="ImageUrl" class="form-control" /><span asp-validation-for="ImageUrl" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="CarbonFootprintKg" class="form-label"></label><input asp-for="CarbonFootprintKg" class="form-control" type="number" step="0.01" /></div>
+    <div class="mb-3"><label asp-for="CareInstructions" class="form-label"></label><textarea asp-for="CareInstructions" class="form-control" rows="2"></textarea></div>
+    <div class="mb-3"><label asp-for="RecyclingInstructions" class="form-label"></label><textarea asp-for="RecyclingInstructions" class="form-control" rows="2"></textarea></div>
+
+    <button class="btn btn-success" type="submit">Създай</button>
+    <a class="btn btn-link" asp-action="Index">Отказ</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

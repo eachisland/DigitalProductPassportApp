@@ -1,0 +1,24 @@
+@model Brand
+@{
+    ViewData["Title"] = "Нова марка";
+}
+
+<h1 class="h3 mb-3">Нова марка</h1>
+
+<form method="post" asp-action="Create" class="form-narrow">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label">Име</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Country" class="form-label">Държава</label>
+        <input asp-for="Country" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Website" class="form-label">Уебсайт</label>
+        <input asp-for="Website" class="form-control" />
+    </div>
+    <button class="btn btn-success" type="submit">Запази</button>
+</form>

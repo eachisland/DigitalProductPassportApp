@@ -1,0 +1,63 @@
+@{
+    ViewData["Title"] = "Сканиране";
+}
+
+<h1 class="h3 mb-3">Сканирай продукт</h1>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h5">Камера</h2>
+                <div id="reader" class="scan-reader"></div>
+                <div id="scanMessage" class="text-muted small mt-2">Насочи камерата към QR кода на етикета.</div>
+                <button id="startBtn" class="btn btn-success mt-2" type="button">Включи камерата</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h5">Въведи код ръчно</h2>
+                <form method="post" asp-action="Lookup">
+                    <label class="form-label" for="code">Код от етикета</label>
+                    <input class="form-control form-control-lg text-uppercase" id="code" name="code"
+                           placeholder="DPP-XXXX-XXXX" autocomplete="off" />
+                    <button class="btn btn-primary mt-3" type="submit">Покажи паспорта</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        (function () {
+            const msg = document.getElementById('scanMessage');
+            const btn = document.getElementById('startBtn');
+            let scanner = null;
+
+            btn.addEventListener('click', async function () {
+                btn.disabled = true;
+                scanner = new Html5Qrcode('reader');
+                try {
+                    await scanner.start(
+                        { facingMode: 'environment' },
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        function (text) {
+                            scanner.stop().finally(function () {
+                                window.location.href = '/scan/resolve?code=' + encodeURIComponent(text);
+                            });
+                        },
+                        function () { /* кадри без QR - игнорираме */ }
+                    );
+                    msg.textContent = 'Камерата е активна...';
+                } catch (e) {
+                    msg.textContent = 'Няма достъп до камерата. Разреши достъпа (нужен е HTTPS) или въведи кода ръчно.';
+                    btn.disabled = false;
+                }
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,59 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}
+/* ---- Digital Product Passport ---- */
+.passport { max-width: 640px; }
+.passport-img { max-height: 320px; object-fit: cover; }
+.scan-reader { width: 100%; max-width: 420px; min-height: 40px; }
+.form-narrow { max-width: 640px; }
+
+.stat-tile {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: .5rem;
+  padding: 1rem;
+  height: 100%;
+}
+.stat-value { font-size: 1.6rem; font-weight: 600; line-height: 1.2; }
+.stat-label { color: #6c757d; font-size: .85rem; }
+
+.timeline { list-style: none; margin: 0; padding-left: 1.25rem; border-left: 2px solid #198754; }
+.timeline li { position: relative; padding: 0 0 1rem .75rem; }
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: -1.6rem;
+  top: .35rem;
+  width: .75rem;
+  height: .75rem;
+  border-radius: 50%;
+  background: #198754;
+}
