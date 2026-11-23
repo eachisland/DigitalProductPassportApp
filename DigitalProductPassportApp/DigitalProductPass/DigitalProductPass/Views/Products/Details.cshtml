@@ -1,0 +1,174 @@
+@model Product
+@{
+    ViewData["Title"] = Model.Name;
+    var carbon = CarbonCalculator.Compute(Model);
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+    <div>
+        <div class="text-muted small">@Model.Brand.Name · <code>@Model.Sku</code>@(string.IsNullOrEmpty(Model.DifferentiationCode) ? "" : " · " + Model.DifferentiationCode)@(string.IsNullOrEmpty(Model.Gtin) ? "" : " · GTIN " + Model.Gtin)</div>
+        <h1 class="h2 mb-0">@Model.Name</h1>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">@T["prod.back"]</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">@T["mat.title"]
+                    <span class="text-muted small">(@T.F("mat.total", carbon.TotalPercentage.ToString("0.##")))</span>
+                </h2>
+
+                @if (Model.Materials.Any() && !carbon.PercentagesValid)
+                {
+                    <div class="callout mb-3">@T["mat.mustBe100"]</div>
+                }
+
+                <ul class="list-group list-group-flush mb-3">
+                    @foreach (var m in Model.Materials)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-start px-0 gap-2">
+                            <div>
+                                <div>@m.Name @(m.IsRecycled ? "♻" : "") <span class="text-muted small">@m.Origin</span></div>
+                                <div class="small text-muted">
+                                    @if (m.CarbonIndexKgPerKg is decimal ci) { <span>@ci.ToString("0.###") kg CO₂e/kg</span> }
+                                    @if (!string.IsNullOrWhiteSpace(m.CertificateCode)) { <span class="cert-chip ms-1">@m.CertificateCode</span> }
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <strong>@m.Percentage.ToString("0.##")%</strong>
+                                <form method="post" asp-action="RemoveMaterial" asp-route-id="@Model.Id" class="m-0">
+                                    <input type="hidden" name="materialId" value="@m.Id" />
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit" title="@T["mat.remove"]" aria-label="@T["mat.remove"]">×</button>
+                                </form>
+                            </div>
+                        </li>
+                    }
+                    @if (!Model.Materials.Any()) { <li class="list-group-item text-muted px-0">@T["mat.none"]</li> }
+                </ul>
+
+                @if (carbon.IndexKgPerKg is decimal idx)
+                {
+                    <div class="callout mb-3">
+                        <div><strong>@T["mat.weighted"]:</strong> @idx.ToString("0.###") kg CO₂e / kg</div>
+                        @if (carbon.CalculatedKg is decimal kg)
+                        {
+                            <div><strong>@T["mat.footprint"]:</strong> @kg.ToString("0.##") kg CO₂e</div>
+                        }
+                        else
+                        {
+                            <div class="text-muted">@T["mat.needWeight"]</div>
+                        }
+                    </div>
+                }
+                else if (Model.Materials.Any() && carbon.PercentagesValid && !carbon.AllIndicesKnown)
+                {
+                    <div class="callout mb-3">@T["mat.needIndices"]</div>
+                }
+
+                <form method="post" asp-action="AddMaterial" asp-route-id="@Model.Id" class="row g-2">
+                    <div class="col-12 col-sm-5"><input name="name" class="form-control" placeholder="@T["mat.name"]" required /></div>
+                    <div class="col-6 col-sm-3"><input name="percentage" class="form-control" type="number" step="0.01" min="0.01" max="100" placeholder="@T["mat.pct"]" required /></div>
+                    <div class="col-6 col-sm-4"><input name="origin" class="form-control" placeholder="@T["mat.origin"]" /></div>
+                    <div class="col-6 col-sm-5"><input name="carbonIndex" class="form-control" type="number" step="0.001" min="0" max="1000" placeholder="@T["mat.carbon"]" /></div>
+                    <div class="col-6 col-sm-7"><input name="certificateCode" class="form-control" maxlength="64" placeholder="@T["mat.cert"]" /></div>
+                    <div class="col-12 d-flex align-items-center justify-content-between">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="isRecycled" value="true" id="isRecycled" />
+                            <label class="form-check-label" for="isRecycled">@T["mat.recycled"]</label>
+                        </div>
+                        <button class="btn btn-sm btn-success" type="submit">@T["mat.add"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">@T["chain.title"]</h2>
+                <ol class="timeline mb-3">
+                    @foreach (var s in Model.SupplyChainSteps.OrderBy(s => s.Order))
+                    {
+                        <li>
+                            <span class="fw-semibold">@s.Stage.Label(T)</span> — @s.FacilityName, @s.Country
+                            @if (s.Date is DateOnly d) { <span class="text-muted small">(@d.ToString("dd.MM.yyyy"))</span> }
+                        </li>
+                    }
+                    @if (!Model.SupplyChainSteps.Any()) { <li class="text-muted">@T["chain.none"]</li> }
+                </ol>
+                <form method="post" asp-action="AddStep" asp-route-id="@Model.Id" class="row g-2">
+                    <div class="col-12 col-sm-4">
+                        <select name="stage" class="form-select">
+                            @foreach (var st in Enum.GetValues<SupplyChainStage>())
+                            {
+                                <option value="@((int)st)">@st.Label(T)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-8"><input name="facilityName" class="form-control" placeholder="@T["chain.facility"]" required /></div>
+                    <div class="col-6"><input name="country" class="form-control" placeholder="@T["chain.country"]" required /></div>
+                    <div class="col-6"><input name="date" type="date" class="form-control" /></div>
+                    <div class="col-12 text-end"><button class="btn btn-sm btn-success" type="submit">@T["chain.add"]</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h2 class="h5">@T["var.title"] <span class="text-muted small">(@Model.Items.Count)</span></h2>
+
+        <form method="post" asp-action="GenerateItems" asp-route-id="@Model.Id" class="row g-2 mb-1">
+            <div class="col-6 col-md-1"><input name="count" type="number" min="1" max="500" value="1" class="form-control" aria-label="@T["var.count"]" title="@T["var.count"]" /></div>
+            <div class="col-6 col-md-2"><input name="differentiationCode" class="form-control text-uppercase" maxlength="6" value="@Model.DifferentiationCode" placeholder="@T["var.diff"]" title="@T["var.diff"]" /></div>
+            <div class="col-6 col-md-2"><input name="color" class="form-control" maxlength="50" placeholder="@T["var.color"]" title="@T["var.color"]" /></div>
+            <div class="col-6 col-md-2"><input name="size" class="form-control" maxlength="20" placeholder="@T["var.size"]" title="@T["var.size"]" /></div>
+            <div class="col-6 col-md-2"><input name="batchNumber" class="form-control" maxlength="20" placeholder="@T["var.batch"]" title="@T["var.batch"]" /></div>
+            <div class="col-6 col-md-3"><button class="btn btn-success w-100" type="submit">@T["var.issue"]</button></div>
+        </form>
+        <div class="form-text mb-3">@T["var.preview"]</div>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead><tr><th>QR</th><th>@T["var.serial"]</th><th>@T["var.color"]</th><th>@T["var.size"]</th><th>@T["var.batch"]</th><th></th><th></th></tr></thead>
+                <tbody>
+                @foreach (var i in Model.Items.OrderByDescending(i => i.Id))
+                {
+                    <tr class="@(i.IsRevoked ? "opacity-50" : "")">
+                        <td><img src="/qr/@(i.PublicId).png" width="72" height="72" loading="lazy" alt="QR @i.SerialCode" style="background:#fff;border-radius:6px;padding:3px" /></td>
+                        <td>
+                            <code>@i.SerialCode</code>
+                            @if (i.IsRevoked) { <span class="badge badge-revoked ms-1">@T["var.revoked"]</span> }
+                        </td>
+                        <td>@i.Color</td>
+                        <td>@i.Size</td>
+                        <td>@i.BatchNumber</td>
+                        <td class="small">
+                            <a href="/p/@i.PublicId" target="_blank" rel="noopener">@T["var.passport"]</a><br />
+                            <a href="/qr/@(i.PublicId).svg" download="@(i.SerialCode).svg">SVG</a> ·
+                            <a href="/qr/@(i.PublicId).png" download="@(i.SerialCode).png">PNG</a>
+                        </td>
+                        <td class="text-end">
+                            @if (!i.IsRevoked)
+                            {
+                                <form method="post" asp-action="Revoke" class="m-0" onsubmit="return confirm(this.dataset.confirm)" data-confirm="@T["var.confirm"]">
+                                    <input type="hidden" name="itemId" value="@i.Id" />
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">@T["var.revoke"]</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="7" class="text-muted">@T["var.none"]</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

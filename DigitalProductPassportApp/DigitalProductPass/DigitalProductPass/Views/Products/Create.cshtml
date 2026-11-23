@@ -1,0 +1,94 @@
+@model ProductFormModel
+@{
+    ViewData["Title"] = T["prod.createTitle"];
+}
+
+<h1 class="h2 mb-4">@T["prod.createTitle"]</h1>
+
+<form method="post" asp-action="Create" class="form-narrow">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="BrandId" class="form-label">@T["f.brand"]</label>
+        <div class="input-group">
+            <select asp-for="BrandId" asp-items="(SelectList)ViewBag.Brands" class="form-select">
+                <option value="0">@T["prod.pick"]</option>
+            </select>
+            <a class="btn btn-outline-secondary" asp-controller="Brands" asp-action="Create">@T["prod.newBrand"]</a>
+        </div>
+        <span asp-validation-for="BrandId" class="text-danger small"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mb-3">
+            <label asp-for="Name" class="form-label">@T["f.name"]</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger small"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Sku" class="form-label">@T["f.sku"]</label>
+            <input asp-for="Sku" class="form-control" />
+            <span asp-validation-for="Sku" class="text-danger small"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="DifferentiationCode" class="form-label">@T["f.diff"]</label>
+            <input asp-for="DifferentiationCode" class="form-control text-uppercase" maxlength="6" />
+            <div class="form-text">@T["f.diff.hint"]</div>
+            <span asp-validation-for="DifferentiationCode" class="text-danger small"></span>
+        </div>
+        <div class="col-md-5 mb-3">
+            <label asp-for="Gtin" class="form-label">@T["f.gtin"]</label>
+            <input asp-for="Gtin" class="form-control" inputmode="numeric" maxlength="14" />
+            <div class="form-text">@T["f.gtin.hint"]</div>
+            <span asp-validation-for="Gtin" class="text-danger small"></span>
+        </div>
+        <div class="col-md-3 mb-3">
+            <label asp-for="Category" class="form-label">@T["f.category"]</label>
+            <input asp-for="Category" class="form-control" />
+        </div>
+    </div>
+
+    <div class="mb-3"><label asp-for="Description" class="form-label">@T["f.desc"]</label><textarea asp-for="Description" class="form-control" rows="3"></textarea></div>
+    <div class="mb-4"><label asp-for="ImageUrl" class="form-label">@T["f.image"]</label><input asp-for="ImageUrl" class="form-control" /><span asp-validation-for="ImageUrl" class="text-danger small"></span></div>
+
+    <h2 class="h5 mb-3">@T["pp.impact"]</h2>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="WeightKg" class="form-label">@T["f.weight"]</label>
+            <input asp-for="WeightKg" class="form-control" type="number" step="0.001" min="0" />
+            <div class="form-text">@T["f.weight.hint"]</div>
+            <span asp-validation-for="WeightKg" class="text-danger small"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="CarbonFootprintKg" class="form-label">@T["f.carbon"]</label>
+            <input asp-for="CarbonFootprintKg" class="form-control" type="number" step="0.01" min="0" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="WaterUsageLiters" class="form-label">@T["f.water"]</label>
+            <input asp-for="WaterUsageLiters" class="form-control" type="number" step="0.1" min="0" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="RecyclabilityScore" class="form-label">@T["f.recycl"]</label>
+            <input asp-for="RecyclabilityScore" class="form-control" type="number" step="1" min="0" max="100" />
+            <span asp-validation-for="RecyclabilityScore" class="text-danger small"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="RepairabilityIndex" class="form-label">@T["f.repair"]</label>
+            <input asp-for="RepairabilityIndex" class="form-control" type="number" step="0.1" min="0" max="10" />
+            <span asp-validation-for="RepairabilityIndex" class="text-danger small"></span>
+        </div>
+    </div>
+
+    <div class="mb-3"><label asp-for="WashInstructions" class="form-label">@T["f.wash"]</label><textarea asp-for="WashInstructions" class="form-control" rows="2"></textarea></div>
+    <div class="mb-4"><label asp-for="EndOfLifeGuidance" class="form-label">@T["f.eol"]</label><textarea asp-for="EndOfLifeGuidance" class="form-control" rows="2"></textarea></div>
+
+    <button class="btn btn-success" type="submit">@T["prod.create"]</button>
+    <a class="btn btn-link" asp-action="Index">@T["common.cancel"]</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

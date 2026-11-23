@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = T["home.eyebrow"];
+}
+
+<section class="hero mb-4 mb-md-5">
+    <div class="eyebrow mb-3">@T["home.eyebrow"]</div>
+    <h1 class="mb-3">@T["home.title"]</h1>
+    <p class="lead mb-4">@T["home.lead"]</p>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-lime btn-lg" asp-controller="Scan" asp-action="Index">@T["home.scanCta"]</a>
+        @if (User.IsInRole("StoreOwner"))
+        {
+            <a class="btn btn-outline-light btn-lg" asp-controller="Products" asp-action="Index">@T["home.storeCta"]</a>
+        }
+        else
+        {
+            <a class="btn btn-outline-light btn-lg" asp-controller="Account" asp-action="Login">@T["home.loginCta"]</a>
+        }
+    </div>
+</section>
+
+<div class="row g-3 g-md-4">
+    <div class="col-md-4"><div class="feature"><div class="num mb-2">01</div><h2 class="h5">@T["home.f1.t"]</h2><p class="mb-0 text-muted">@T["home.f1.d"]</p></div></div>
+    <div class="col-md-4"><div class="feature"><div class="num mb-2">02</div><h2 class="h5">@T["home.f2.t"]</h2><p class="mb-0 text-muted">@T["home.f2.d"]</p></div></div>
+    <div class="col-md-4"><div class="feature"><div class="num mb-2">03</div><h2 class="h5">@T["home.f3.t"]</h2><p class="mb-0 text-muted">@T["home.f3.d"]</p></div></div>
+</div>

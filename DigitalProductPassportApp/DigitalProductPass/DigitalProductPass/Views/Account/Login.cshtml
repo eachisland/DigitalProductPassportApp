@@ -1,0 +1,39 @@
+@using DigitalProductPass.ViewModels
+@model LoginViewModel
+@{
+    ViewData["Title"] = T["login.title"];
+}
+
+<div class="login-wrap">
+    <div class="eyebrow mb-2">@T["brand.title"]</div>
+    <h1 class="h2 mb-2">@T["login.title"]</h1>
+    <p class="text-muted mb-4">@T["login.lead"]</p>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@(ViewData["ReturnUrl"] as string)">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label">@T["login.username"]</label>
+                    <input asp-for="Username" class="form-control" autocomplete="username" autofocus />
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">@T["login.password"]</label>
+                    <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+                <div class="form-check mb-4">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label asp-for="RememberMe" class="form-check-label">@T["login.remember"]</label>
+                </div>
+                <button type="submit" class="btn btn-success w-100">@T["login.submit"]</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

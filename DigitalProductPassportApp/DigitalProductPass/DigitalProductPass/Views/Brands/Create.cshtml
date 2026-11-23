@@ -1,0 +1,28 @@
+@model Brand
+@{
+    ViewData["Title"] = T["brand.createTitle"];
+}
+
+<h1 class="h2 mb-4">@T["brand.createTitle"]</h1>
+
+<form method="post" asp-action="Create" class="form-narrow">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label">@T["brand.name"]</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger small"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Country" class="form-label">@T["brand.country"]</label>
+        <input asp-for="Country" class="form-control" />
+    </div>
+    <div class="mb-4">
+        <label asp-for="Website" class="form-label">@T["brand.website"]</label>
+        <input asp-for="Website" class="form-control" />
+    </div>
+    <button class="btn btn-success" type="submit">@T["brand.save"]</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

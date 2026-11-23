@@ -1,0 +1,4 @@
+/* Scoped styles for _Layout.cshtml. Global theme lives in wwwroot/css/site.css. */
+.navbar-brand {
+  white-space: normal;
+}

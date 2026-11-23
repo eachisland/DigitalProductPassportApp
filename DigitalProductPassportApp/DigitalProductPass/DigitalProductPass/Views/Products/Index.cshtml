@@ -1,0 +1,36 @@
+@model List<Product>
+@{
+    ViewData["Title"] = T["prod.title"];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 mb-0">@T["prod.title"]</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="Brands" asp-action="Create">@T["nav.brands"]</a>
+        <a class="btn btn-success" asp-action="Create">@T["prod.new"]</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead><tr><th>@T["prod.name"]</th><th>@T["prod.brand"]</th><th>@T["prod.sku"]</th><th>@T["prod.variants"]</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">@p.Name</td>
+                    <td>@p.Brand.Name</td>
+                    <td><code>@p.Sku</code></td>
+                    <td>@p.Items.Count</td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@p.Id">@T["prod.manage"]</a></td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="5" class="text-muted">@T["prod.none"]</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

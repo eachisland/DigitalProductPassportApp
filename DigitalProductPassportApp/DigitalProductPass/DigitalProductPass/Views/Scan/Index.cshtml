@@ -1,0 +1,63 @@
+@{
+    ViewData["Title"] = T["scan.title"];
+}
+
+<h1 class="h2 mb-4">@T["scan.title"]</h1>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h5">@T["scan.camera"]</h2>
+                <div id="reader" class="scan-reader"></div>
+                <div id="scanMessage" class="text-muted small mt-2">@T["scan.hint"]</div>
+                <button id="startBtn" class="btn btn-success mt-2" type="button">@T["scan.start"]</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h5">@T["scan.manual"]</h2>
+                <form method="post" asp-action="Lookup">
+                    <label class="form-label" for="code">@T["scan.codeLabel"]</label>
+                    <input class="form-control form-control-lg text-uppercase" id="code" name="code"
+                           placeholder="TSHORG-WHI-M-XXXXX" autocomplete="off" />
+                    <button class="btn btn-primary mt-3" type="submit">@T["scan.submit"]</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        (function () {
+            const msg = document.getElementById('scanMessage');
+            const btn = document.getElementById('startBtn');
+            let scanner = null;
+
+            btn.addEventListener('click', async function () {
+                btn.disabled = true;
+                scanner = new Html5Qrcode('reader');
+                try {
+                    await scanner.start(
+                        { facingMode: 'environment' },
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        function (text) {
+                            scanner.stop().finally(function () {
+                                window.location.href = '/scan/resolve?code=' + encodeURIComponent(text);
+                            });
+                        },
+                        function () { /* frames without a QR code are ignored */ }
+                    );
+                    msg.textContent = @Json.Serialize(T["scan.active"]);
+                } catch (e) {
+                    msg.textContent = @Json.Serialize(T["scan.noCamera"]);
+                    btn.disabled = false;
+                }
+            });
+        })();
+    </script>
+}
