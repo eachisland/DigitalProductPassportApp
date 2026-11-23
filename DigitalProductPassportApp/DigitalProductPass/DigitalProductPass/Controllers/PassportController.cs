@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using DigitalProductPass.Data;
 using DigitalProductPass.Models;
+using DigitalProductPass.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,19 +21,13 @@ public class PassportController : Controller
 
     // GS1 Digital Link: /01/{gtin}/21/{serial}
     [HttpGet("/01/{gtin:length(14)}/21/{serial}")]
-    public Task<IActionResult> Gs1(string gtin, string serial)
-    {
-        var s = serial.ToUpperInvariant();
-        return Show(i => i.SerialCode == s && i.Product.Gtin == gtin);
-    }
+    public Task<IActionResult> Gs1(string gtin, string serial) =>
+        Show(PassportLookup.MatchGs1(gtin, serial));
 
     // GS1 Digital Link with batch/lot: /01/{gtin}/10/{batch}/21/{serial}
     [HttpGet("/01/{gtin:length(14)}/10/{batch}/21/{serial}")]
-    public Task<IActionResult> Gs1WithBatch(string gtin, string batch, string serial)
-    {
-        var s = serial.ToUpperInvariant();
-        return Show(i => i.SerialCode == s && i.Product.Gtin == gtin && i.BatchNumber == batch);
-    }
+    public Task<IActionResult> Gs1WithBatch(string gtin, string batch, string serial) =>
+        Show(PassportLookup.MatchGs1(gtin, serial, batch));
 
     private async Task<IActionResult> Show(Expression<Func<ProductItem, bool>> predicate)
     {

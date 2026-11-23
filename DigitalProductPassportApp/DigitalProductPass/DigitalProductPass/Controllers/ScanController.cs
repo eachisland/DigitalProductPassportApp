@@ -1,5 +1,7 @@
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using DigitalProductPass.Data;
+using DigitalProductPass.Models;
 using DigitalProductPass.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +11,11 @@ namespace DigitalProductPass.Controllers;
 [Route("scan")]
 public class ScanController : Controller
 {
-    private static readonly Regex GuidRegex =
-        new(@"[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}", RegexOptions.Compiled);
+    private static readonly Regex ResolverPath =
+        new(@"/p/(?<publicId>[^/]+)/?\z", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
-    // GS1 Digital Link: .../01/{gtin}[/10/{batch}]/21/{serial}
-    private static readonly Regex Gs1Regex =
-        new(@"/01/\d{14}(?:/10/[^/?#]+)?/21/(?<serial>[^/?#]+)", RegexOptions.Compiled);
+    private static readonly Regex Gs1Path =
+        new(@"/01/(?<gtin>[0-9]{14})(?:/10/(?<batch>[^/]+))?/21/(?<serial>[^/]+)/?\z");
 
     private readonly ApplicationDbContext _db;
     private readonly UiText _t;
@@ -41,29 +42,65 @@ public class ScanController : Controller
     {
         code = code?.Trim();
         if (string.IsNullOrEmpty(code))
-        {
-            TempData["Error"] = _t["msg.enterCode"];
-            return RedirectToAction(nameof(Index));
-        }
+            return LookupError("msg.enterCode");
 
-        // 1) Resolver URL or bare GUID
-        var match = GuidRegex.Match(code);
-        if (match.Success && Guid.TryParse(match.Value, out var publicId))
-            return Redirect($"/p/{publicId}");
+        var predicate = MatchCode(code);
+        if (predicate is null)
+            return LookupError("msg.codeNotFound");
 
-        // 2) GS1 Digital Link or a readable serial code (e.g. TSHORG-WHI-M-7K3M9, legacy DPP-7K3M-9QXA)
-        var gs1 = Gs1Regex.Match(code);
-        var serial = (gs1.Success ? Uri.UnescapeDataString(gs1.Groups["serial"].Value) : code).ToUpperInvariant();
         var found = await _db.ProductItems
             .AsNoTracking()
-            .Where(i => i.SerialCode == serial)
+            .Where(predicate)
             .Select(i => (Guid?)i.PublicId)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(HttpContext.RequestAborted);
 
         if (found is Guid id)
-            return Redirect($"/p/{id}");
+            return RedirectToAction(nameof(PassportController.Details), "Passport", new { publicId = id });
 
-        TempData["Error"] = _t["msg.codeNotFound"];
+        return LookupError("msg.codeNotFound");
+    }
+
+    private IActionResult LookupError(string message)
+    {
+        TempData["Error"] = _t[message];
         return RedirectToAction(nameof(Index));
+    }
+
+    private static Expression<Func<ProductItem, bool>>? MatchCode(string code)
+    {
+        if (Guid.TryParseExact(code, "D", out var publicId))
+            return item => item.PublicId == publicId;
+
+        var path = GetLinkPath(code);
+        if (path is null)
+        {
+            // Handle both current and legacy label serials, including dashes copied from formatted text.
+            var serialCode = Regex.Replace(code, @"[\u2010-\u2014\u2212]", "-").ToUpperInvariant();
+            return item => item.SerialCode == serialCode;
+        }
+
+        var resolver = ResolverPath.Match(path);
+        if (resolver.Success && Guid.TryParse(Uri.UnescapeDataString(resolver.Groups["publicId"].Value), out publicId))
+            return item => item.PublicId == publicId;
+
+        var gs1 = Gs1Path.Match(path);
+        if (!gs1.Success)
+            return null;
+
+        var batch = gs1.Groups["batch"];
+        return PassportLookup.MatchGs1(
+            gs1.Groups["gtin"].Value,
+            Uri.UnescapeDataString(gs1.Groups["serial"].Value),
+            batch.Success ? Uri.UnescapeDataString(batch.Value) : null);
+    }
+
+    private static string? GetLinkPath(string code)
+    {
+        if (code.StartsWith('/') && !code.StartsWith("//", StringComparison.Ordinal))
+            return code.Split(['?', '#'], 2)[0];
+
+        return Uri.TryCreate(code, UriKind.Absolute, out var uri) && (uri.Scheme is "http" or "https")
+            ? uri.AbsolutePath
+            : null;
     }
 }

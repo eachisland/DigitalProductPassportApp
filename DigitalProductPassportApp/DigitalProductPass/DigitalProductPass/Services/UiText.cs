@@ -103,7 +103,7 @@ public class UiText
         A("scan.active", "Camera is active…", "Kamera etkin…", "Kamera ist aktiv …");
         A("scan.noCamera", "No camera access. Allow it (HTTPS required) or type the code instead.", "Kameraya erişilemiyor. İzin verin (HTTPS gerekir) veya kodu elle girin.", "Kein Kamerazugriff. Erlauben Sie ihn (HTTPS nötig) oder geben Sie den Code ein.");
         A("scan.manual", "Enter code manually", "Kodu elle gir", "Code manuell eingeben");
-        A("scan.codeLabel", "Code from the label", "Etiketteki kod", "Code vom Etikett");
+        A("scan.codeLabel", "Serial number or passport link", "Seri numarası veya pasaport bağlantısı", "Seriennummer oder Pass-Link");
         A("scan.submit", "Show passport", "Pasaportu göster", "Pass anzeigen");
 
         // Messages
